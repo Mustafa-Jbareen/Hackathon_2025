@@ -1,0 +1,23 @@
+{
+    "claim": "Climate change is primarily driven by human activity.",
+    "groups": {
+        "Group A": {
+            "name": "Climate Scientists",
+            "sources": [
+                "https://www.ipcc.ch/report/ar6/",
+                "https://www.nature.com/articles/s41586-019-1711-1"
+            ]
+        },
+        "Group B": {
+            "name": "Climate Skeptics",
+            "sources": [
+                "https://www.heritage.org/environment/report/the-dubious-science-climate-alarmism",
+                "https://wattsupwiththat.com/"
+            ]
+        }
+    },
+    "relevant_news": [
+        "https://www.bbc.com/news/science-environment-56837908",
+        "https://edition.cnn.com/specials/world/climate"
+    ]
+}
