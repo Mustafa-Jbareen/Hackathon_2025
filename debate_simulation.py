@@ -1,148 +1,125 @@
-# ------------------- Imports -------------------
-
-import json                     # For handling JSON data (reading/writing).
-import logging                  # For logging messages (info, warning, error, etc.).
-from typing import Dict, List   # For type hinting dictionaries and lists.
-from openai import OpenAI      # OpenAI API client for interacting with language models.
-from my_secrets import OPENROUTER_API_KEY, OPENROUTER_API_BASE  # Import API key and base URL from secrets.
-
-# ------------------- Logging Setup -------------------
-
-# Configure logging to include timestamp, logger name, level, and message.
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO,  # Only log INFO level and above (INFO, WARNING, ERROR).
-)
-
-logger = logging.getLogger(__name__)  # Get logger instance for this module.
 
 
-# ------------------- LanguageModel Class -------------------
+import json
+import os
+import logging
+from typing import List, Dict
+from openai import OpenAI
+from my_secrets import OPENROUTER_API_KEY, OPENROUTER_API_BASE
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
+# Define the LanguageModel wrapper
 class LanguageModel:
-    def __init__(self, model_name: str,
-                 temperature: float = 0.0,
+    def __init__(self,
+                 model_name: str,
+                 temperature: float = 0.7,
                  openrouter_api_key: str = OPENROUTER_API_KEY,
-                 openrouter_api_base: str = OPENROUTER_API_BASE,
-                 **kwargs):
-        try:
-            # Initialize OpenAI API client with OpenRouter base and key.
-            self.client = OpenAI(
-                base_url=openrouter_api_base,
-                api_key=openrouter_api_key,
-            )
-            self.model_name = model_name              # Model name, e.g. "gpt-3.5-turbo".
-            self.temperature = temperature            # Response randomness (0 = deterministic).
-            self.kwargs = kwargs                      # Optional extra parameters.
-        except Exception as e:
-            logger.error(f"Failed to initialize LanguageModel: {str(e)}")
-            raise
+                 openrouter_api_base: str = OPENROUTER_API_BASE):
+        self.client = OpenAI(base_url=openrouter_api_base, api_key=openrouter_api_key)
+        self.model_name = model_name
+        self.temperature = temperature
 
-    def ask(self, prompt: str = None, temperature: float = None):
-        # Generate a chat completion from the model.
-        completion = self.client.chat.completions.create(
+    def ask(self, prompt: str) -> str:
+        response = self.client.chat.completions.create(
             model=self.model_name,
             messages=[{"role": "user", "content": prompt}],
-            temperature=temperature or self.temperature
+            temperature=self.temperature
         )
-        return completion.choices[0].message.content  # Return the model's response text.
+        return response.choices[0].message.content
 
-    def __call__(self, prompt: str):
-        # Allows the object to be called like a function: model("Prompt").
-        try:
-            return self.ask(prompt)
-        except Exception as e:
-            logger.error(f"Failed to process prompt: {str(e)}")
-            raise
+    def ask_stream(self, prompt: str):
+        response = self.client.chat.completions.create(
+            model=self.model_name,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=self.temperature,
+            stream=True
+        )
+        for chunk in response:
+            if chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
+
+    def __call__(self, prompt: str) -> str:
+        return self.ask(prompt)
 
 
-# ------------------- DebateSimulator Class -------------------
-
+# Main class for simulating a debate
 class DebateSimulator:
-    def __init__(self, data: Dict, model_name: str):
-        self.data = data                      # The JSON-like data input.
-        self.model = LanguageModel(model_name)  # Initialize language model with given name.
-        self.claim = data['claim']           # Extract claim from data.
-        self.groups = data['groups']         # Extract debate groups from data.
-        self.news = data.get('relevant_news', [])  # Optional: list of relevant news links.
+    def __init__(self, data: dict, model_name: str = "google/gemma-7b-it:free"):
+        self.claim = data["claim"]
+        self.groups = {
+            "group1": {
+                "name": data["group1"]["name"],
+                "sources": data["group1"]["sources"]
+            },
+            "group2": {
+                "name": data["group2"]["name"],
+                "sources": data["group2"]["sources"]
+            }
+        }
+        self.model = LanguageModel(model_name)
 
     def format_sources(self, sources: List[str]) -> str:
-        # Convert list of sources to a readable bullet-point string.
-        return "\n".join(f"- {src}" for src in sources)
+        return "\n".join(f"- {source}" for source in sources)
 
-    def simulate_argument(self, group_name: str, sources: List[str]) -> str:
-        # Create a prompt for a group to generate an argument using its sources.
-        prompt = (
-            f"You represent the group '{group_name}'. "
-            f"Debate the following claim using your supporting sources:\n\n"
-            f"Claim: {self.claim}\n\n"
-            f"Supporting sources:\n{self.format_sources(sources)}\n\n"
-            f"Generate a persuasive argument supporting your stance."
-        )
-        return self.model(prompt)  # Get response from the model.
+    def simulate_chat_debate(self):
+        print("=== Starting Debate ===\n")
+        group_infos = [self.groups["group1"], self.groups["group2"]]
+        history = []
 
-    def simulate_debate(self):
-        # Generate arguments for both groups and collect them.
-        results = {}
-        for group_key, group_info in self.groups.items():
-            group_name = group_info['name']
-            logger.info(f"Generating argument for group: {group_name}")
-            argument = self.simulate_argument(group_name, group_info['sources'])
-            results[group_name] = argument  # Save the argument by group name.
-        return results
+        for round_num in range(2):  # Change number of rounds as needed
+            for group_info in group_infos:
+                name = group_info["name"]
+                sources = self.format_sources(group_info["sources"])
 
-    def summarize_debate(self, arguments: Dict[str, str]) -> str:
-        # Summarize the debate using a neutral prompt.
-        prompt = (
-            f"A debate occurred on the claim: '{self.claim}'.\n\n"
-            f"Here are the group arguments:\n\n" +
-            "\n\n".join(f"{group}:\n{argument}" for group, argument in arguments.items()) +
-            "\n\nPlease act as a neutral moderator and summarize the key points from each group. "
-            "Provide an impartial evaluation of the debate."
-        )
-        return self.model(prompt)  # Return the summary generated by the model.
+                # Build prompt
+                prompt = (
+                    f"You are representing '{name}' in a formal debate.\n"
+                    f"Claim: {self.claim}\n\n"
+                    f"Debate History:\n" +
+                    "\n".join(f"{entry['speaker']}: {entry['content']}" for entry in history) +
+                    f"\n\nYour sources:\n{sources}\n\n"
+                    f"Respond concisely in this format:\n"
+                    f"Point: <your argument>\nSource: <cite your source(s)>"
+                )
+
+                print(f"\n{name} says:")
+                streamed = ""
+                try:
+                    for token in self.model.ask_stream(prompt):
+                        print(token, end="", flush=True)
+                        streamed += token
+                    print("\n" + "-" * 40)
+                except Exception as e:
+                    print(f"\n[ERROR streaming response]: {e}")
+
+                history.append({"speaker": name, "content": streamed.strip()})
 
 
-# ------------------- Example JSON Data -------------------
-
+# Example input data
 sample_json_data = {
     "claim": "Climate change is primarily driven by human activity.",
-    "groups": {
-        "Group A": {
-            "name": "Climate Scientists",
-            "sources": [
-                "https://www.ipcc.ch/report/ar6/",
-                "https://www.nature.com/articles/s41586-019-1711-1"
-            ]
-        },
-        "Group B": {
-            "name": "Climate Skeptics",
-            "sources": [
-                "https://www.heritage.org/environment/report/the-dubious-science-climate-alarmism",
-                "https://wattsupwiththat.com/"
-            ]
-        }
+    "group1": {
+        "name": "Climate Scientists",
+        "sources": [
+            "https://www.ipcc.ch/report/ar6/",
+            "https://www.nature.com/articles/s41586-019-1711-1"
+        ]
     },
-    "relevant_news": [
-        "https://www.bbc.com/news/science-environment-56837908",
-        "https://edition.cnn.com/specials/world/climate"
-    ]
+    "group2": {
+        "name": "Climate Skeptics",
+        "sources": [
+            "https://www.heritage.org/environment/report/the-dubious-science-climate-alarmism",
+            "https://wattsupwiththat.com/"
+        ]
+    }
 }
 
 
-# ------------------- Example Execution -------------------
-
+# Run it
 if __name__ == "__main__":
-    model_name = "deepseek/deepseek-chat-v3-0324:free"
-  # The model used to simulate the debate.
+    model_name = "google/gemma-3-4b-it:free"  # or "openai/gpt-4-vision-preview" if supported
     simulator = DebateSimulator(sample_json_data, model_name)
+    simulator.simulate_chat_debate()
 
-    print("=== Simulating Debate ===")
-    arguments = simulator.simulate_debate()  # Generate arguments for both groups.
-
-    for group, argument in arguments.items():
-        print(f"\n--- {group} Argument ---\n{argument}")  # Print each group's argument.
-
-    print("\n=== Moderator Summary ===")
-    summary = simulator.summarize_debate(arguments)  # Print the debate summary.
-    print(summary)
