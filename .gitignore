@@ -1,0 +1,16 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Secrets and credentials
+my_secrets.py
+.env
+
+# Environment folders
+env/
+venv/
+.venv/
+
+# OS files
+.DS_Store
+Thumbs.db
