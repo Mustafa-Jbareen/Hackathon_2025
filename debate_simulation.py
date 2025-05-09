@@ -96,18 +96,18 @@ class DebateSimulator:
             # Build the prompt
             # Build the prompt
             prompt = (
-                f"You are participating in a structured debate on the claim:\n"
+                f"You’re part of a friendly, structured chat about the claim:\n"
                 f"'{self.claim}'\n\n"
                 f"Your role: {group_name}\n"
-                f"Previous statements:\n{debate_history}\n\n"
-                f"Use your sources:\n{sources}\n\n"
-                f"Now reply with ONE short but informative sentence directly responding to the last point made.\n"
-                f"Be clear, persuasive, and cite your sources briefly at the end.\n"
-                f"Format your answer like this:\n"
-                f"Group Name: <your sentence> (Source: <source>)"
-            )
-
-            print(f"\n{group_name} says:")
+                f"Here’s what’s been said so far:\n{debate_history}\n\n"
+                f"You have these sources to help you make your point:\n{sources}\n\n"
+                f"Now add ONE short, natural-sounding sentence that responds directly to the last thing said.\n"
+                f"Keep it friendly and conversational—like you're talking to someone you respect but disagree with.\n"
+                f"Use one of the sources to support your point, but don't sound too formal.\n"
+                f"You can question, agree a little, clarify something, or suggest a middle ground—whatever keeps things respectful and moving forward.\n"
+                f"Format it like this:\n"
+                f"<your sentence> (Source: <source>)"
+                )
             try:
                 response = self.model.ask(prompt)
                 print(response)
