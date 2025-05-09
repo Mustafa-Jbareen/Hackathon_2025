@@ -1,16 +1,13 @@
-
-
 import json
 import os
-import logging
 from typing import List, Dict
 from openai import OpenAI
 from my_secrets import OPENROUTER_API_KEY, OPENROUTER_API_BASE
+import logging
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-# Define the LanguageModel wrapper
 class LanguageModel:
     def __init__(self,
                  model_name: str,
@@ -29,97 +26,133 @@ class LanguageModel:
         )
         return response.choices[0].message.content
 
-    def ask_stream(self, prompt: str):
-        response = self.client.chat.completions.create(
-            model=self.model_name,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=self.temperature,
-            stream=True
-        )
-        for chunk in response:
-            if chunk.choices[0].delta.content:
-                yield chunk.choices[0].delta.content
-
     def __call__(self, prompt: str) -> str:
         return self.ask(prompt)
 
 
-# Main class for simulating a debate
 class DebateSimulator:
-    def __init__(self, data: dict, model_name: str = "google/gemma-7b-it:free"):
+    def __init__(self, data: dict, model_name: str = "google/gemma-3-4b-it:free", history_file: str = "debate_history.json"):
         self.claim = data["claim"]
         self.groups = {
             "group1": {
-                "name": data["group1"]["name"],
-                "sources": data["group1"]["sources"]
+                "name": data["groups"]["Group A"]["name"],
+                "sources": data["groups"]["Group A"]["sources"]
             },
             "group2": {
-                "name": data["group2"]["name"],
-                "sources": data["group2"]["sources"]
+                "name": data["groups"]["Group B"]["name"],
+                "sources": data["groups"]["Group B"]["sources"]
             }
         }
+
         self.model = LanguageModel(model_name)
+        self.history_file = history_file
+
+        # Reset the history file at initialization
+        with open(self.history_file, 'w') as f:
+            json.dump({}, f, indent=4)
 
     def format_sources(self, sources: List[str]) -> str:
         return "\n".join(f"- {source}" for source in sources)
 
-    def simulate_chat_debate(self):
-        print("=== Starting Debate ===\n")
-        group_infos = [self.groups["group1"], self.groups["group2"]]
-        history = []
+    def read_history(self) -> Dict[str, str]:
+        """Reads the history from the JSON file."""
+        if os.path.exists(self.history_file):
+            with open(self.history_file, 'r') as f:
+                return json.load(f)
+        else:
+            return {}
 
-        for round_num in range(2):  # Change number of rounds as needed
-            for group_info in group_infos:
-                name = group_info["name"]
-                sources = self.format_sources(group_info["sources"])
+    def write_history(self, history: Dict[str, str]):
+        """Writes the updated history back to the JSON file."""
+        with open(self.history_file, 'w') as f:
+            json.dump(history, f, indent=4)
 
-                # Build prompt
-                prompt = (
-                    f"You are representing '{name}' in a formal debate.\n"
-                    f"Claim: {self.claim}\n\n"
-                    f"Debate History:\n" +
-                    "\n".join(f"{entry['speaker']}: {entry['content']}" for entry in history) +
-                    f"\n\nYour sources:\n{sources}\n\n"
-                    f"Respond concisely in this format:\n"
-                    f"Point: <your argument>\nSource: <cite your source(s)>"
-                )
+    def simulate_debate(self) -> Dict[str, str]:
+        """
+        Simulates a 2-sentence back-and-forth debate (3 turns per group), appends it to the history,
+        and writes back to the JSON file.
+        :return: A dictionary with keys "i" (as strings) and values "Group Name: <argument>"
+        """
+        # Read current history
+        history = self.read_history()
+        full_session = {}
 
-                print(f"\n{name} says:")
-                streamed = ""
-                try:
-                    for token in self.model.ask_stream(prompt):
-                        print(token, end="", flush=True)
-                        streamed += token
-                    print("\n" + "-" * 40)
-                except Exception as e:
-                    print(f"\n[ERROR streaming response]: {e}")
+        for _ in range(2):
+            turn = len(history)  # current turn number
+            turn_key = str(turn)
 
-                history.append({"speaker": name, "content": streamed.strip()})
+            # Determine current group
+            current_group_key = "group1" if turn % 2 == 0 else "group2"
+            current_group = self.groups[current_group_key]
+            group_name = current_group["name"]
+            sources = self.format_sources(current_group["sources"])
 
+            # Build debate history string
+            debate_history = "\n".join(
+                f"{i}: {self.groups['group1' if int(i) % 2 == 0 else 'group2']['name']}: {v}"
+                for i, v in history.items()
+            )
 
-# Example input data
-sample_json_data = {
-    "claim": "Climate change is primarily driven by human activity.",
-    "group1": {
-        "name": "Climate Scientists",
-        "sources": [
-            "https://www.ipcc.ch/report/ar6/",
-            "https://www.nature.com/articles/s41586-019-1711-1"
-        ]
-    },
-    "group2": {
-        "name": "Climate Skeptics",
-        "sources": [
-            "https://www.heritage.org/environment/report/the-dubious-science-climate-alarmism",
-            "https://wattsupwiththat.com/"
-        ]
-    }
-}
+            # Build the prompt
+            # Build the prompt
+            prompt = (
+                f"You are participating in a structured debate on the claim:\n"
+                f"'{self.claim}'\n\n"
+                f"Your role: {group_name}\n"
+                f"Previous statements:\n{debate_history}\n\n"
+                f"Use your sources:\n{sources}\n\n"
+                f"Now reply with ONE short but informative sentence directly responding to the last point made.\n"
+                f"Be clear, persuasive, and cite your sources briefly at the end.\n"
+                f"Format your answer like this:\n"
+                f"Group Name: <your sentence> (Source: <source>)"
+            )
 
+            print(f"\n{group_name} says:")
+            try:
+                response = self.model.ask(prompt)
+                print(response)
+            except Exception as e:
+                print(f"[ERROR] Error generating response: {e}")
+                response = "[ERROR generating response]"
 
-# Run it
-if __name__ == "__main__":
-    model_name = "google/gemma-3-4b-it:free"  # or "openai/gpt-4-vision-preview" if supported
-    simulator = DebateSimulator(sample_json_data, model_name)
-    simulator.simulate_chat_debate()
+            # Add to history
+            history[turn_key] = response.strip()
+            self.write_history(history)
 
+            # Append to result dict
+            full_session[turn_key] = f"{group_name}: {response.strip()}"
+
+        return full_session
+
+    def summarize_debate(self) -> Dict[str, str]:
+        """
+        Summarizes the full debate from a non-biased perspective and optionally gives a verdict.
+        :return: A dictionary with key "summary" and a summary + verdict as value
+        """
+        # Read full debate history
+        history = self.read_history()
+
+        # Reconstruct debate history in human-readable format
+        debate_text = "\n".join(
+            f"{self.groups['group1' if int(i) % 2 == 0 else 'group2']['name']}: {v}"
+            for i, v in history.items()
+        )
+
+        # Build the summarization prompt
+        prompt = (
+            f"You are a neutral observer tasked with summarizing the following debate:\n"
+            f"Claim: {self.claim}\n\n"
+            f"Debate Transcript:\n{debate_text}\n\n"
+            f"Please provide only a very very short, non-biased summary of the debate.\n"
+            f"Then, offer very very short a non-biased final verdict on the debate, based only on the arguments provided."
+        )
+
+        try:
+            print("\n[Summary Requesting from model...]")
+            summary_response = self.model.ask(prompt)
+            print(summary_response)
+        except Exception as e:
+            print(f"[ERROR] Error generating summary: {e}")
+            summary_response = "[ERROR generating summary]"
+
+        return {"summary": summary_response.strip()}
