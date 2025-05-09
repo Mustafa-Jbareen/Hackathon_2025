@@ -1,9 +1,5 @@
-# from telegram import Update
-# from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-# import json
-# import asyncio
-# import textwrap
 
+import json
 import textwrap
 import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -12,6 +8,7 @@ from telegram.ext import (
     ContextTypes, ConversationHandler, filters
 )
 
+import working
 from debate_simulation import DebateSimulator
 from my_secrets import OPENROUTER_API_KEY, OPENROUTER_API_BASE
 
@@ -35,84 +32,12 @@ async def help_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await update.message.reply_markdown(help_text)
 
-#-----------------------------------------------------------------------------
-
-# # Step 1: Simulate response to "func"
-# def func(input_json):
-#     return {
-#         "text": "Article received. Preparing arguments..."
-#     }
-
-# # Step 2: Simulate response with 6 debate items
-# def func1(input_json):
-#     return {
-#         "0": "Climate change is real and affects global temperatures.",
-#         "1": "However, some argue the effects are exaggerated.",
-#         "2": "Data shows increased storm frequency and intensity.",
-#         "3": "Critics say such events also occurred naturally.",
-#         "4": "Scientific consensus supports human impact.",
-#         "5": "But policy responses remain politically divisive."
-#     }
-
-# # Helper: Format a 2-line block, left or right aligned
-# def format_zigzag_block(text: str, align: str = "left") -> str:
-#     wrap_width = 30 if align == "left" else 35
-#     indent = 0 if align == "left" else 55
-
-#     lines = textwrap.wrap(text, width=wrap_width)
-#     if len(lines) == 1:
-#         lines.append("")  # Ensure two lines always
-
-#     return "\n".join(" " * indent + line for line in lines)
-
-# # Handler for /debate command
-# async def debate_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-#     if not context.args:
-#         await update.message.reply_text("Usage: /debate <your_text>")
-#         return
-
-#     user_input = " ".join(context.args)
-
-#     # Step 1: Simulate call to func
-#     result1 = func({"text": "Please provide the article text you want to discuss for the debate."})
-    
-#     # Step 2: Simulate call to func1
-#     result2 = func1(result1)
-
-#     # Step 3: Format into zigzag blocks
-#     blocks = []
-#     for i in range(6):
-#         align = "left" if i % 2 == 0 else "right"
-#         block = format_zigzag_block(result2[str(i)], align)
-#         blocks.append(block)
-
-#     # Step 4: Send initial message
-#     sent_msg = await update.message.reply_text("💬 Starting debate...")
-
-#     # Step 5: Reveal blocks one at a time
-#     text_so_far = ""
-#     for block in blocks:
-#         text_so_far += block + "\n\n"
-#         await asyncio.sleep(1.5)
-#         await sent_msg.edit_text(text_so_far)
-
 
 ASK_CONTINUE = range(1)
 user_data_store = {}
 debate_simulator = None  # Global variable to hold the DebateSimulator instance
 counter = 0
 
-
-# Simulated func
-def func(input_json):
-    if input_json.get("text") == "finish":
-        return {
-            "text": "Debate concluded. Thank you for participating."
-        }
-    else:
-        return {
-            "text": "Article received. Preparing arguments..."
-        }
 
 def func1(input_json):
     global debate_simulator  # Use the global variable
@@ -126,6 +51,7 @@ def func1(input_json):
     elif input_json.get("text") == "finish":
         result = debate_simulator.summarize_debate()
         counter = 0  # Reset counter for next debate
+        debate_simulator = None
         return result
     else:
         result = debate_simulator.simulate_debate()
@@ -166,26 +92,29 @@ async def start_debate(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text("💬 Starting debate...")
 
-    result1 = func({"text": "Please provide the article text you want to discuss for the debate."})
-    result1 = {
-        "claim": "Climate change is primarily driven by human activity.",
-        "groups": {
-            "Group A": {
-                "name": "Climate Scientists",
-                "sources": [
-                    "https://www.ipcc.ch/report/ar6/",
-                    "https://www.nature.com/articles/s41586-019-1711-1"
-                ]
-            },
-            "Group B": {
-                "name": "Climate Skeptics",
-                "sources": [
-                    "https://www.heritage.org/environment/report/the-dubious-science-climate-alarmism",
-                    "https://wattsupwiththat.com/"
-                ]
-            }
-        }
-    }
+    user_input = " ".join(context.args)
+    user_input = {
+    "text": user_input
+    }   
+
+    # Specify the file path
+    json_file_path = "tayaraToMahmoud.json"
+
+    # Write the structure to a JSON file
+    with open(json_file_path, 'w') as json_file:
+        json.dump(user_input, json_file, indent=4)
+    
+    input_json = "tayaraToMahmoud.json"  # Placeholder for the actual input JSON
+    print(input_json)  
+    model_name = "openai/gpt-4.1-nano"  # Or any OpenRouter-supported model
+    extractor = working.ConflictExtractor(input_json, model_name)
+    extractor.run_pipeline()
+
+    with open('classified_bias_output.json', 'r') as file:
+        result1 = json.load(file)
+
+    print(result1)
+
     result2 = func1(result1)
 
     sent_msg = await update.message.reply_text("🧠 Generating...")

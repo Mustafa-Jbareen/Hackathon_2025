@@ -31,7 +31,7 @@ class LanguageModel:
 
 
 class DebateSimulator:
-    def __init__(self, data: dict, model_name: str = "google/gemma-3-4b-it:free", history_file: str = "debate_history.json"):
+    def __init__(self, data: dict, model_name: str = "openai/gpt-4.1-nano", history_file: str = "debate_history.json"):
         self.claim = data["claim"]
         self.groups = {
             "group1": {
