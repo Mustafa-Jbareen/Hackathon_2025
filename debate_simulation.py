@@ -106,7 +106,7 @@ class DebateSimulator:
                 f"Use one of the sources to support your point, but don't sound too formal.\n"
                 f"You can question, agree a little, clarify something, or suggest a middle ground—whatever keeps things respectful and moving forward.\n"
                 f"Format it like this:\n"
-                f"<your sentence> (Source: <source>)"
+                f"<your sentence> (Source: <source> only the link)"
                 )
             try:
                 response = self.model.ask(prompt)
