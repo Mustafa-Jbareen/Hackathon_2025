@@ -1,24 +1,24 @@
 {
-  "claim": "The US has a stronger economy than China.",
+  "claim": "The effectiveness of conservative policies versus liberal approaches in promoting personal responsibility, economic growth, and national security.",
   "groups": {
     "Group A": {
-      "name": "US",
+      "name": "Conservative policies promoting personal responsibility, economic growth, and national security",
       "sources": [
-        "https://www.bloomberg.com/news/articles/2024-01-25/us-extends-lead-over-china-in-race-for-world-s-biggest-economy",
-        "https://www.bloomberg.com/opinion/articles/2024-01-25/gdp-economic-data-show-us-beating-china-in-cold-war-ii",
-        "https://fortune.com/2024/04/16/us-economy-vs-china-growth-imf-world-economic-outlook-real-estate-inflation/",
-        "https://www.cnn.com/2024/01/29/investing/premarket-stocks-trading/index.html"
+        "https://www.psychologytoday.com/intl/blog/the-economy-happiness/201512/do-progressive-or-conservative-policies-promote-happiness",
+        "https://newrepublic.com/article/61829/fact-finders",
+        "https://www.theadvocates.org/conservative/",
+        "https://www.dpc.senate.gov/dpcdoc.cfm?doc_name=sr-111-1-136",
+        "https://cfif.org/v/index.php/commentary/61-state-issues/1399-the-results-are-in-conservative-states-prosper-while-liberal-states-decline",
+        "https://www.comparativepoliticseconomics.com/conservative.html",
+        "http://conservativemyths.com/compare.html"
       ]
     },
     "Group B": {
-      "name": "China",
+      "name": "Liberal approaches",
       "sources": [
-        "https://www.noahpinion.blog/p/how-do-we-measure-whether-chinas",
-        "https://www.ie.edu/insights/articles/why-the-united-states-is-growing-faster-than-china/",
-        "https://www.newsweek.com/china-us-economies-compared-1894756",
-        "https://seektruthfromfacts.org/cwg/chinas-current-economy-vs-usa-which-numbers-would-you-prefer-for-your-country/",
-        "https://asiatimes.com/2025/01/is-chinas-economy-ahead-of-americas/",
-        "https://www.visualcapitalist.com/comparing-the-u-s-and-china-on-eight-measures-of-power/"
+        "https://www.semanticscholar.org/paper/The-Economics-of-the-Political-Parties%3A-A-of-Under-Fischer/0ed95307ecdd3624b9c5ffea29c8f76f034bbabc",
+        "https://www.americanprogress.org/article/the-consequences-of-conservative-economic-policy/",
+        "https://www.sfgate.com/politics/article/How-Democrats-Republicans-compare-3174511.php"
       ]
     }
   }

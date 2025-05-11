@@ -10,7 +10,7 @@ from telegram.ext import (
 
 import working
 from debate_simulation import DebateSimulator
-from my_secrets import OPENROUTER_API_KEY, OPENROUTER_API_BASE
+from my_secrets import OPENROUTER_API_KEY, OPENROUTER_API_BASE, BOT_KEY
 
 # Handler for /start command
 async def start_handler(update: Update, context):
@@ -98,13 +98,13 @@ async def start_debate(update: Update, context: ContextTypes.DEFAULT_TYPE):
     }   
 
     # Specify the file path
-    json_file_path = "tayaraToMahmoud.json"
+    json_file_path = "ExaInput.json"
 
     # Write the structure to a JSON file
     with open(json_file_path, 'w') as json_file:
         json.dump(user_input, json_file, indent=4)
     
-    input_json = "tayaraToMahmoud.json"  # Placeholder for the actual input JSON
+    input_json = "ExaInput.json"  # Placeholder for the actual input JSON
     print(input_json)  
     model_name = "openai/gpt-4.1-nano"  # Or any OpenRouter-supported model
     extractor = working.ConflictExtractor(input_json, model_name)
@@ -169,7 +169,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Main bot setup
 def main():
-    token = "7312111338:AAFuiXEItN102Q0NQJVSL87rkZVSi9HZytQ"
+    token = BOT_KEY
 
     app = ApplicationBuilder().token(token).build()
 
