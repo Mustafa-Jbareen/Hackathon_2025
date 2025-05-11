@@ -1,9 +1,10 @@
+#imports
 import json
 import os
 from typing import List, Dict
 from openai import OpenAI
-from my_secrets import OPENROUTER_API_KEY, OPENROUTER_API_BASE
 import logging
+from my_secrets import OPENROUTER_API_KEY, OPENROUTER_API_BASE
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -156,3 +157,4 @@ class DebateSimulator:
             summary_response = "[ERROR generating summary]"
 
         return {"summary": summary_response.strip()}
+
