@@ -1,21 +1,21 @@
 
 # 🧠 Debatify – AI-Powered Telegram Bot for Fact-Based Debates
 
-**Finalist – CS Faculty Hackathon on Disinformation, May 2025**
+**Finalist – Technion CS Faculty Hackathon-Doing Good, on Disinformation, May 2025**
 
-> _Combating disinformation and polarization through civil, source-backed debates between AI agents._
+> _Combating disinformation and polarization through civil, source-backed debates between AI agents, and fact checking argumetns._
 
 ---
 
 ## 🚨 Problem
 
-Online discourse, especially on political or polarizing issues, is increasingly shaped by **fake news**, **biased sources**, and **algorithm-driven echo chambers**. Many heated arguments online are rooted in **claims based on misinformation**, often without proper fact-checking or exposure to alternative viewpoints.
+Online discourse, especially on political or polarizing issues, is increasingly shaped by **fake news**, **biased sources**, and **algorithm-driven echo chambers**. Most of the Heated discussions that deepen societal divisions and fuel hostility between opposing viewpoints within the same community online, are rooted in **claims based on misinformation and disinformation**, often without proper fact-checking or exposure to alternative viewpoints.
 
 ---
 
 ## 🎯 Our Goal
 
-**Debatify** aims to raise awareness of disinformation by simulating **fact-based, respectful debates** between two AI agents. Each "bot" adopts one side of a claim and cites real sources, helping users understand **how bias influences argumentation**—and how critical thinking and civil dialogue can bridge divides **without compromising truth**.
+**Debatify** aims to heal social rifts by fostering constructive conversations grounded in verified information, help reconcile differing perspectives by prioritizing facts over friction and raise awareness of disinformation by Exposing users to multiple perspectives by simulating **fact-based, respectful debates with Tone aimed at mutual understanding and bridge-building** between two AI agents. Each "bot" adopts one side of a claim and cites real sources, helping users understand **how bias influences argumentation**—and how critical thinking and civil dialogue can bridge divides **without compromising truth or Fact checked Source backed argumetns**.
 
 ---
 
@@ -43,12 +43,10 @@ Online discourse, especially on political or polarizing issues, is increasingly 
 
 ## 🧰 Tech Stack
 
-- **Python 3.10+**
+- **Python 3.11**
 - **Telegram Bot API**
-- **OpenAI GPT-4 API** – NLP, debate generation, summarization
+- **OpenAI GPT-4(gpt4.1 Nano model) API** – NLP, debate generation, summarization
 - **Exa API** – Search engine for real-time web content
-- **LangChain** – (Optional, if used, for chaining modules)
-- **BeautifulSoup / Requests** – For HTML parsing (if needed)
 
 ---
 
@@ -75,8 +73,8 @@ python src/main.py
 
 ## 🤝 Team & Acknowledgments
 
-Built in 36 hours by a team of CS students from [Your University].  
-We thank the CS Faculty Hackathon organizers for the opportunity to build technology that blends **AI**, **ethics**, and **social impact**.
+Built in 36 hours by a team of CS students from Technion Taub faculty of computer science.  
+We thank the CS Faculty Hackathon organizers for the opportunity to build technology that blends **AI**, **ethics**, and **social impact**, and we would like to extend special thanks to the technical, product and humanities Mentors and entrepreneurs from all the participating Universitis and companies (Reichman university, BGU, University of Haifa, Apple, Mobileye, KLA, Israel internet association) for their invaluable guidance, technical advice, and encouragement throughout the hackathon. Their support helped us refine our idea, navigate challenges, and build a project with both technological depth and social relevance.
 
 ---
 
