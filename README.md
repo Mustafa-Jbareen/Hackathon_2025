@@ -82,5 +82,5 @@ We thank the CS Faculty Hackathon organizers for the opportunity to build techno
 
 > “Disinformation is not just a technical challenge—it's a social one. Debatify shows how we can use AI not to polarize further, but to **inform, reflect, and repair**.”
 
-![Hackathon pic]([https://raw.githubusercontent.com/USERNAME/Hackathon_2025/main/hackathonPic.PNG](https://github.com/Mustafa-Jbareen/Hackathon_2025/blob/main/hackathonPIc.PNG))
+![Hackathon pic](https://raw.githubusercontent.com/USERNAME/Hackathon_2025/main/hackathonPic.PNG)
 
